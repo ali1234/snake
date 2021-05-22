@@ -1,154 +1,153 @@
-# 32Blit Snake, from brass tacks
+# Super Simple Snake
 
-I chose the game Snake around which to build this tutorial in the hope that everyone has at least a passing familiarity with the game, it mechanics and goals.
+If you've somehow not heard of Snake, it's a game with a simple premise and basic controls. Inspired by classic computer games with a similar premise, it was developed for prehistoric mobile phones that didn't have fancy things like d-pads or high-resolution screens. You are a snake. Your goal is to move around the playing field, eat apples and grow. As you grow longer you're met with the challenge of avoiding your own tail. Collide with your tail, or the edge of the playing field, and it's game over.
 
-Fo those that don't, Snake is simple. You are a snake. Your objective is to wind your way around a level and eat apples. Every apple eaten makes you longer. If your head collides with any part of your body, you lose.
+Snake - which needed only directional controls - leant itself supremely well to the Nokia 6110 for which it was written. With the 4-way nav buttons being somewhat awkward the number keys 2, 4, 6 and 8 were used. Controlling the game was still a challenge, one that modern d-pads have mitigated somewhat, but the simple gameplay loop and ability to restart immediately to try, try again made it addictive and ultimately satisfying.
 
-The beauty of snake is its simplicity. It's a prime example of a first-game-to-grok because it has only one moving part; you, the player, the titular Snake.
+This tutorial will guide you through the 100 or so lines of code needed to crete a very, very simple Snake for the 32Blit. Super Simple Snake, if you will. It will touch upon seven key topics:
 
-This tutorial will guide you through:
+1. Displaying sprite-based graphics
+2. Accepting and responding to user input
+3. Using a Timer to advance game state
+4. Randomly placing and eating apples
+5. Managing the length/direction of the titular Snake
+6. Detecting collision with the Snake's tail and the screen edge
+7. Resetting the game state
 
-1. How not to do graphics
-2. Creating and moving the player Snake
-3. Setting the limits of the playing field
-4. Spawning random apples
-5. Eating apples, and growing the snake
-6. Bumping the snake into it's own curly bottom
+These will be covered roughly in-order, and we'll rig up some test code that will later be re-written as we move toward a final Snake clone.
 
-## Graphics - or how not to do them
+- [Super Simple Snake](#super-simple-snake)
+  - [Step 1: Graphics](#step-1-graphics)
+    - [Referencing Sprites](#referencing-sprites)
+    - [Loading Sprites](#loading-sprites)
+    - [Drawing Sprites](#drawing-sprites)
+    - [Putting It Together](#putting-it-together)
 
-To keep this tutorial simple we're not going to deal with sprites or fancy graphics. We're going back to the classic Nokia snake era and dealing only with a handful of pixels to represent the Snake and the apples to collect.
+## Step 1: Graphics
 
-In order to do this, we're going to draw the entire game into its own Surface. A Surface is, effectively, an image and we're playing a programming game of realtime MS Paint.
+To get started quickly, we're going to use some of the assets provides with the 32Blit SDK: dingbads.
 
-Our Surface will be 40 by 30 pixels in size. That's pretty small, but there's a good reason for this choice. A 32Blit sprite is 8x8 pixels, and 40 x 30 is 32Blit's screen resolution (320 x 240) divided by 8 in both directions. If we decide we want glorious sprite-based after all, we can make a few changes to our drawing code and - voila - everything will just work.
+All of the 32Blit sprite assets are 128 x 128 pixel, PNG images containing 16 x 16 (256) sprites. These might form stanalone 8 x 8 characters, or be combined to form larger characters like monsters, ships and more. Dingbads is a series of 256 individual objects covering everything from fruit and food, to more abstract shapes.
 
-### The Code
+### Referencing Sprites
 
-We know a few key things that will get us started:
+Before we start drawing things to screen, it's important that we know how to refer to a particular sprite in our spritesheet.
 
-1. We want to draw into a Surface
-2. So we're going to need a Surface
-3. We want it to be 40 x 30 pixels in size
-4. So we'll need to stretch it to fill the screen
+Generally it's easiest to refer to sprites - each 8 x 8 pixels in size - by their index along the x and y axes. The top-left most sprite is `Point(0, 0)` and the bottom-right most is `Point(15, 15)`. Don't forget that we're counting from zero.
 
-#### Creating A Surface
+We can also use an index starting from `0` and ending at `255`, counting from left to right and wrapping down and left as if we were counting the words in a book. This is sometimes useful if we want to store a sprite's position in a *really small data type* to create a whole level or environment, but we'll stick with x and y coordinates for now. 32Blit can handle a little lavishness for the sake of snake.
 
-C++ code can get pretty obtuse pretty quickly so I'm going to keep it brief. These lines of code are... *a* way to create a 40 x 30 pixel, RGBA (red, green, blue + alpha) surface into which we can draw our game world.
+The top-left corner in our dingbags spritesheet has a great little cherry sprite, a true classic. We'll be using this as our "apple" since it's easy to find at `Point(0, 0)`. For our snake we'll delve further into the spritesheet and use the green ball thingy on the 11th column, 10th row or `Point(10, 9)`.
 
-```c++
-constexpr Size surface_size(40, 30);
-Pen surface_data[surface_size.h][surface_size.w];
-Surface surface((uint8_t *)surface_data, PixelFormat::RGBA, surface_size);
-```
-
-To break this down, first we're defining a `Size` which is nothing more than a fancy container to store a width `.w` and height `.h` value together, representing the two-dimensional size of *something*. That *something* can be anything you can imagine, but for our purposes it's our surface.
-
-The line:
+Let's start writing some very tentative code to make a note of these:
 
 ```c++
-constexpr Size surface_size(40, 30);
+using namespace blit;
+
+constexpr Point sprite_snake(9, 10);
+constexpr Point sprite_apple(0, 0);
 ```
 
-Is a little about-face, but it creates a constant value named `surface_size` with a `.w` of 40 and a `.h` of 30.
+First we're telling our compiler that all of the code we're about to write will be using the goodies in the 32Blit SDK. The line `using namespace blit;` allows us to drop th `blit::` qualifier before 32Blit SDK types and functions- without this we'd have to write `blit::Point` and we're *lazy*.
 
-You could accomplish the same thing with the following snippet, but I like brevity and we're going to be writing quite a bit of code here:
+Then we create two points, one to store the location of our `snake` sprite, and one for the `apple`. We define these once at the top of our code so we can use `sprite_snake` and `sprite_apple` every time we refer to them. This is much easier to understand at a glance than running across `Point(0, 0)` in our code.
+
+> ### constexpr?
+> We're creating a couple of constant expressions- these are evaluated at *compile time* and are a fancy alternative to `#define SNAKE Point(9, 10)` which - depending on your experience with C/C++ you may have come across. A `constexpr Point` will create and store exactly one canonical instance of our `snake` or `apple` location in a way that the rest of our C++ code can understand. It has a type. It has an address. It's a real C++ variable. The `#define` method, by contrast, is evaluated *before* compilation by a preprocessor that doesn't undertand or care about C++. The preprocessor naively replaces every instance of `SNAKE` and `APPLE` in our code with our `Point`s.
+
+### Loading Sprites
+
+The 32Blit SDK and tools provide a means to turn sprites from `.png` images into chunks of data that the 32Blit engine can understand. We call it the Asset Pipeline. To accomplish this you need four things:
+
+1. Your asset/image
+2. An `assets.yml` file
+3. A tweak to your `CMakeLists.txt` to add assets
+4. The assets header included into your code
+
+Since we know we're using `s4m_ur4i-dingbads.png` for our sprites, we can go right ahead and write an `assets.yml` to reference it:
+
+```yml
+assets.cpp:
+  assets/s4m_ur4i-dingbads.png:
+    name: asset_dingbads
+```
+
+Let's break down these lines.
+
+```yml
+assets.cpp:
+```
+
+Tells the asset pipeline to produce a `.cpp` file (and correponding `.hpp`) as its output.
+
+```yml
+  assets/s4m_ur4i-dingbads.png:
+```
+
+This is just the path to the file we want to use. The `:` on the end is important, because it tells the pipeline that the following lines are options relating to this file.
+
+```yml
+    name: asset_dingbads
+```
+
+Tells the asset pipeline that we want a variable named `asset_dingbads`.
+
+So that's our `assets.yml`. Let's add it to `CMakeLists.txt`;
+
+```cmake
+blit_assets_yaml(${PROJECT_NAME} assets.yml)
+```
+
+Finally we can include the `.hpp` file into our code so that it knows our new asset variable exists:
 
 ```c++
-constexpr Size surface_size = Size(40, 30);
+#include "assets.hpp"
 ```
 
-The next line is a little less weird:
-
-```c++
-Pen surface_data[surface_size.h][surface_size.w];
-```
-
-This creates a 2D array. A 2D array of `Pen`s. A 2D array of `Pen`s big enough to store a `Pen` for every pixel in our 40 x 20 Surface. Since a `Pen` represents a colour - Red, Green, Blue + Alpha - an 2D array of `Pen`s is effectively an image. Indeed this forms the very foundation of a Surface, and our `Surface` is really just a convenience wrapper around this array to define the real 2D size of our image and provide drawing and blending functions.
-
-Now, lucky us, we get to create the Surface itself:
-
-```c++
-Surface surface((uint8_t *)surface_data, PixelFormat::RGBA, surface_size);
-```
-
-The `Surface` takes three arguments. Some kind of storage, a "Pixel Format" and the `Size` we created earlier. The latter two arguments serve to describe the storage backing our `Surface` and since this can be anything from a `Pen` (for RGBA) down to a `uint8_t` (for masks and paletted images) the `Surface` actually expects an array of `uint8_t`.
-
-Woah there. What does that mean?
-
-Well `u` `int` `8` `_t` roughly translates to:
-
-* `unsigned` - it's a positive number only from 0 upwards
-* `integer` - a whole number, no fuzzy decimal places
-* `8 bits` - 8 bits of resolution- fitting a number from 0 to 255
-* `_t` - this is a type, a type of number in this case... this suffix is just visual noise but don't forget it.
-
-Since a `uint8_t` is usually the smallest data type, we tend to create functions that take a `uint8_t` and use fancy C features to tell our compiler to treat blocks of data as one thing or another.
-
-Since a `Pen` stores a Red, Green, Blue and Alpha value, all as unsigned, 8-bit integers, it can be represented as a 32-bit integer, or four 8-bit integers, or two 16-bit integers. The `Surface` constructor expects a container that's made of `uint8_t` though, so we just tell the compiler to treat our array of `Pen`s as an array of `uint8_t` and it's happy to oblige.
-
-We could have used `uint8_t` in the first place, but there's a good reason for `surface_data` being made of `Pen`s that we'll come to later.
-
-#### Drawing Something Into Our Surface
-
-Before we forge ahead and draw our `Surface` to the screen, we ought to draw something in the Surface first. Why? Well if we don't put anything in there, we're not going to know if drawing it to the screen has worked. There will be nothing to see!
-
-Let's poke something pretty to look at:
+Once a spritesheet has been converted into data and embedded into our code by the asset pipeline, we need to load it and use it. This is normally done in 32Blit's `init()`:
 
 ```c++
 void init() {
-    surface_data[14][19] = Pen(255, 0, 0);
+    screen.sprites = Surface::load(asset_dingbads);
 }
 ```
 
-Okay, okay. We're cheating a bit here. By poking a `Pen` value directly into our `surface_data` we're avoiding the fancy, helpful drawing functions that Surface affords us. We'll get to that later.
+That's a nice clear line of code. We're creating a new `Surface` (a surface is basically an image with some handy extra info and functions attached), and telling it to load the contents of `asset_dingbads`. This `Surface` is, in turn, assigned to the `screen` as its spritesheet. `screen` is *also* a surface.
 
-Isn't it cool that we can just poke colours right into our display, though? Be forewarned, however, that due to the way we tend to represent pixel data the *first* index in our 2D array is the *vertical* axis (y) and the *second* index is the *horizontal* axis (x). This is so horiontal rows of pixels are stored ajacent to each other, which has lots of benefits I'm not going to touch upon just yet.
+> ### surface?
+> The name "surface" appears a lot in computers graphics, and in terms of 32Blit it usually refers to something you *draw* into. Just like you're draw *on* a real, physical surface.
+> A surface usually has a size and a pixel format - RGB, RGBA, Paletted, etc. These tidbits are encoded into our `asset_dingbads` and loaded automagically.
 
-#### Drawing Our Surface To The Screen
+### Drawing Sprites
 
-Now we have one dot roughly in the center of our surface, we want to stick it on our screen so we can *see* it:
+It's all been groundwork so far, and we've yet to see the fruits of our labour. Let's draw a sprite to the screen so we have something to celebrate. This is usually done in 32Blit's `render()`:
 
 ```c++
-void render(uint32_t time_ms) {
-  screen.stretch_blit(&surface, Rect(Point(0, 0), surface.bounds), Rect(Point(0, 0), screen.bounds));
+void render(uint32_t time) {
+    screen.sprite(sprite_apple, Point(0, 0));
 }
 ```
 
-This is a little wordy, but hopefully you'll notice the to `Rect()`s are rather similar. The first is just a rectangle representing our surface. The second is a rectangle representing our screen. These allow `stretch_blit` to know how much of our surface it should grab and which portion of the screen to paint it onto.
+Remember the `Point` from earlier that we called `sprite_apple`? This is a reference into our spritesheet and is given as the first argument of `screen.sprite`. The second argument - you might guess - is the position on the screen where we want to draw our sprite. `Point(0, 0)` is the very top left. Perhaps you'd like to try drawing it elsewhere!
 
-Since `Rect` can take a `Point` and a `Size`, we borrow the `.bounds` of our surface and screen (already a `Size`) and use `Point(0, 0)` to represent the top left corner of each.
+### Putting It Together
 
-If you wanted to draw to a quarter of the screen, you could just divide its `.bounds` by 2:
-
-```c++
-void render(uint32_t time_ms) {
-  screen.stretch_blit(&surface, Rect(Point(0, 0), surface.bounds), Rect(Point(0, 0), screen.bounds / 2));
-}
-```
-
-Four player snake? You might need more buttons!
-
-That concludes this second, by now your code should look like the snippet below and you should be:
-
-1. Creating a surface that represents the canvas into which we paint our pixelly Snake art
-2. Painting something into the surface so we know it works
-3. Drawing the surface to the screen
+By now you should be able to load and draw a sprite. You could try drawing more sprites. Your code should look something like this:
 
 ```c++
-constexpr Size surface_size(40, 30);
-Pen surface_data[surface_size.h][surface_size.w];
-Surface surface((uint8_t *)surface_data, PixelFormat::RGBA, surface_size);
+#include "32blit.hpp"
+#include "assets.hpp"
+
+using namespace blit;
+
+constexpr Point sprite_snake(9, 10);
+constexpr Point sprite_apple(0, 0);
 
 void init() {
-    surface_data[14][19] = Pen(255, 0, 0);
-    // Note! You should really do this:
-    // surface.pen = Pen(255, 0, 0)
-    // surface.pixel(Point(19, 14))
-    // but... we're lazy and lo-fi in this here town!
+    screen.sprites = Surface::load(asset_dingbads);
 }
 
-void render(uint32_t time_ms) {
-  screen.stretch_blit(&surface, Rect(Point(0, 0), surface.bounds), Rect(Point(0, 0), screen.bounds / 2));
+void render(uint32_t time) {
+    screen.sprite(sprite_apple, Point(0, 0));
 }
 ```
