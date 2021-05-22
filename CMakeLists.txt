@@ -17,6 +17,7 @@ find_package (32BLIT CONFIG REQUIRED PATHS ../32blit-sdk)
 
 blit_executable (${PROJECT_NAME} ${PROJECT_SOURCE})
 blit_metadata (${PROJECT_NAME} metadata.yml)
+blit_assets_yaml (${PROJECT_NAME} assets.yml)
 add_custom_target (flash DEPENDS ${PROJECT_NAME}.flash)
 
 # setup release packages

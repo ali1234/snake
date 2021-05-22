@@ -5,16 +5,9 @@
 
 #include "snake.hpp"
 #include "random.hpp"
+#include "assets.hpp"
 
 using namespace blit;
-
-// We're using a 40 x 30 game world, making our "pixels" 8x8 actual pixels in size
-// this is coincidentally the size of a tile, lest we want to use graphics in future.
-constexpr Size surface_size(40, 30);
-// Create the 2D surface data as type Pen so we can poke it directly if we want!
-Pen surface_data[surface_size.h][surface_size.w];
-// Create the 40 x 30 pixel game world canvas to draw into
-Surface surface((uint8_t *)surface_data, PixelFormat::RGBA, surface_size);
 
 // Some handy constants for movement directions and "stopped" state
 constexpr Vec2 UP(0, -1);
@@ -22,6 +15,13 @@ constexpr Vec2 DOWN(0, 1);
 constexpr Vec2 LEFT(-1, 0);
 constexpr Vec2 RIGHT(1, 0);
 constexpr Vec2 STOP(0, 0);
+
+// These points index into the spritesheet, using x/y values
+// makes it easy to identify a specific sprite.
+constexpr Point SNAKE(9, 10);
+constexpr Point APPLE(0, 0);
+
+Rect game_bounds;
 
 // Current snake direction
 Vec2 direction(0, 0);
@@ -40,66 +40,91 @@ Timer timer;
 
 // You lost. Or maybe just began.
 // Reset the "snake" and all sundry variables back to their default state
-void whoops() {
-    snake.erase(snake.begin(), snake.end());
-    snake.emplace_back(Point(19, 14));
+void restart_game() {
+    snake.clear();
+    snake.emplace_back(game_bounds.center());
     direction = STOP;
     score = 0;
     random_reset();
-    apple = Point(14, 19);
+    apple = get_random_point(game_bounds.size());
 }
 
-// This function is called by the timer
+// This function is called by the timer and handles the main game logic
+// this allows us to run the game at a speed (more or less) of our choosing.
+// TASK you could try making Snake harder over time by speeding it up!
 void move(Timer &t) {
     Point head = snake.back() + direction;
     for(auto segment : snake) {
+        // If the head x/y coordinates match any body/segment
+        // coordinates then we've collided with ourselves. BAD LUCK!
         if(head == segment){
-            whoops();
+            restart_game();
             return;
         }
     }
+    // Add the new head to our snake's body so it grows
+    // in the direction of movement.
     snake.emplace_back(head);
 
-    if(snake.back().x > surface_size.w - 1) return whoops();
-    if(snake.back().y > surface_size.h - 1) return whoops();
-    if(snake.back().x < 0) return whoops();
-    if(snake.back().y < 0) return whoops();
-
-    if(snake.back() == apple) {
+    if(head == apple) {
         score += 1;
-        apple = get_random_point(surface_size);
+        apple = get_random_point(game_bounds.size());
     } else {
+        //  If we go out of bounds BAD LUCK!
+        // We can check this by seeing if our head is within the game bounds.
+        if(!game_bounds.contains(head)) {
+            restart_game();
+            return;
+        }
+        // If we haven't eaten an apple then the snake doesn't get any bigger
+        // erase the tail... this means erasing the front of our std::vector
+        // which is A BAD THING, but for the sake of snake... it's fiiiinnnee!
         snake.erase(snake.begin());
     }
 }
 
 /* setup */
 void init() {
+    set_screen_mode(lores);
+    
+    // The screen bounds divided by the sprite size (8 x 8) form
+    // the game bounds- ie: the number of x / y locations that
+    // our snake and apple's can occupy.
+    game_bounds = Rect(Point(0, 0), screen.bounds / 8);
+
+    // Load our dingbads spritesheet, it has some... snake-like stuff we can use
+    // TASK Create some artwork and make Snake your own!
+    screen.sprites = Surface::load(asset_dingbads);
+
     snake.reserve(100);
-    whoops();
+
+    // Make sure the game state is reset
+    restart_game();
+
+    // Set up and start the timer
     timer.init(move, 100, -1);
     timer.start();
 }
 
 void render(uint32_t time_ms) {
-    // Draw into our virtual 40 x 30 pixel game canvas
-    surface.pen = Pen(0, 20, 0);
-    surface.clear();
-    surface.pen = Pen(0, 255, 0);
-    for(auto segment : snake) {
-        surface.pixel(segment);
-    }
-    surface.pen = Pen(255, 0, 0);
-    surface.pixel(apple);
+    // Clear the screen to dark green
+    screen.pen = Pen(0, 20, 0, 255);
+    screen.clear();
 
-    // *Real* screen drawing
-    screen.alpha = 40;
-    screen.stretch_blit(&surface, Rect(Point(0, 0), surface.bounds), Rect(Point(0, 0), screen.bounds));
-    
-    // Score overlay
+    // Draw the snake body one segment at a time
+    for(auto segment : snake) {
+        // To convert from segment coords to screen coords we must multiply
+        // by the sprite size: 8 x 8
+        screen.sprite(SNAKE, segment * 8);
+    }
+
+    // Draw the current apple. Or cherry. Or something.
+    screen.sprite(APPLE, apple * 8);
+
+    // Draw a score overlay
     screen.alpha = 100;
     screen.pen = Pen(255, 255, 255);
-    screen.text(std::to_string(score), minimal_font, Point(0, 0), false);
+    screen.text(std::to_string(score), minimal_font, Point(5, 5), false);
 }
 
 void update(uint32_t time) {
