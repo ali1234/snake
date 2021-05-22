@@ -10,16 +10,16 @@
 using namespace blit;
 
 // Some handy constants for movement directions and "stopped" state
-constexpr Vec2 UP(0, -1);
-constexpr Vec2 DOWN(0, 1);
-constexpr Vec2 LEFT(-1, 0);
-constexpr Vec2 RIGHT(1, 0);
+constexpr Vec2 move_up(0, -1);
+constexpr Vec2 move_down(0, 1);
+constexpr Vec2 move_left(-1, 0);
+constexpr Vec2 move_right(1, 0);
 constexpr Vec2 STOP(0, 0);
 
 // These points index into the spritesheet, using x/y values
 // makes it easy to identify a specific sprite.
-constexpr Point SNAKE(9, 10);
-constexpr Point APPLE(0, 0);
+constexpr Point sprite_snake(9, 10);
+constexpr Point sprite_apple(0, 0);
 
 Rect game_bounds;
 
@@ -115,11 +115,11 @@ void render(uint32_t time_ms) {
     for(auto segment : snake) {
         // To convert from segment coords to screen coords we must multiply
         // by the sprite size: 8 x 8
-        screen.sprite(SNAKE, segment * 8);
+        screen.sprite(sprite_snake, segment * 8);
     }
 
     // Draw the current apple. Or cherry. Or something.
-    screen.sprite(APPLE, apple * 8);
+    screen.sprite(sprite_apple, apple * 8);
 
     // Draw a score overlay
     screen.alpha = 100;
@@ -130,11 +130,11 @@ void render(uint32_t time_ms) {
 void update(uint32_t time) {
     // Movement is easy. You can't go back on yourself.
     if(direction.x == 0) {
-        if(buttons.pressed & DPAD_RIGHT) direction = RIGHT;
-        if(buttons.pressed & DPAD_LEFT) direction = LEFT;
+        if(buttons.pressed & DPAD_RIGHT) direction = move_right;
+        if(buttons.pressed & DPAD_LEFT) direction = move_left;
     }
     if(direction.y == 0) {
-        if(buttons.pressed & DPAD_DOWN) direction = DOWN;
-        if(buttons.pressed & DPAD_UP) direction = UP;
+        if(buttons.pressed & DPAD_DOWN) direction = move_down;
+        if(buttons.pressed & DPAD_UP) direction = move_up;
     }
 }
