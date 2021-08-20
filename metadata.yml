@@ -2,7 +2,7 @@ title: Susi Snake
 description: A remake of the Nokia classic.
 author: gadgetoid
 splash:
-  file: assets/no-image.png
+  file: assets/susi-snake.png
 icon:
   file: assets/no-icon.png
 version: v0.0.1
