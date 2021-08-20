@@ -57,7 +57,7 @@ void restart_game() {
     score = 0;
     random_reset();
     apple = get_random_point(game_bounds.size());
-    sprite_apple.x = random() % NUM_SPRITES;
+    sprite_apple.x = get_random_int() % NUM_SPRITES;
 }
 
 // This function is called by the timer and handles the main game logic
@@ -86,7 +86,7 @@ void move(Timer &t) {
     if(head == apple) {
         score += 1;
         apple = get_random_point(game_bounds.size());
-        sprite_apple.x = random() % NUM_SPRITES;
+        sprite_apple.x = get_random_int() % NUM_SPRITES;
     } else {
         //  If we go out of bounds BAD LUCK!
         // We can check this by seeing if our head is within the game bounds.
