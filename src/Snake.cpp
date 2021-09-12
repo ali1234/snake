@@ -1,7 +1,4 @@
 #include <string>
-#include <cstring>
-#include <memory>
-#include <cstdlib>
 
 #include "Snake.hpp"
 #include "random.hpp"
@@ -9,47 +6,10 @@
 
 using namespace blit;
 
-// Time, in milliseconds, between each update of the game state
-const uint32_t UPDATE_RATE = 200;
-
-// Some handy constants for movement directions and "stopped" state
-const Vec2 MOVE_UP(0, -1);
-const Vec2 MOVE_DOWN(0, 1);
-const Vec2 MOVE_LEFT(-1, 0);
-const Vec2 MOVE_RIGHT(1, 0);
-const Vec2 STOP(0, 0);
-
-// These points index into the spritesheet, using x/y values
-// makes it easy to identify a specific sprite.
-const Point SPRITE_SNAKE(9, 10);
-const uint32_t NUM_SPRITES = 14; // First 14 sprites on the top row
-
-// Rectangle to store the playing field bounds in tiles
-// the screen bounds might be 160x120 but our actual
-// play area is 20x15 (8px tiles)
-Rect game_bounds;
-
-// Current snake direction
-Vec2 direction(0, 0);
-
-// The snake itself is a vector of Points
-std::vector<Point> snake;
-
-// Only one apple at a time, represented by a Point
-Point apple;
-
-// Sprite to use for the apple
-Point sprite_apple(0, 0);
-
-// First to 2^32-1 points wins!
-uint32_t score;
-
-// The "update" hook is called far too quickly, so use a timer for movement
-Timer timer;
 
 // You lost. Or maybe just began.
 // Reset the "snake" and all sundry variables back to their default state
-void restart_game() {
+void Snake::restart_game() {
     // Remove all snake 
     snake.clear();
     snake.emplace_back(game_bounds.center());
@@ -63,7 +23,7 @@ void restart_game() {
 // This function is called by the timer and handles the main game logic
 // this allows us to run the game at a speed (more or less) of our choosing.
 // TASK you could try making Snake harder over time by speeding it up!
-void move(Timer &t) {
+void Snake::move(Timer &t) {
     // No movement means nothing to do here
     // exit early so the snake doesn't continually collide with itself
     if (direction == Vec2(0.0f, 0.0f)) return;
@@ -101,7 +61,7 @@ void move(Timer &t) {
     }
 }
 
-void init() {
+Snake::Snake() {
     set_screen_mode(lores);
     
     // The screen bounds divided by the sprite size (8 x 8) form
@@ -121,11 +81,11 @@ void init() {
     restart_game();
 
     // Set up and start the timer
-    timer.init(move, UPDATE_RATE, -1);
+    timer.init([this](auto && PH1) { move(std::forward<decltype(PH1)>(PH1)); }, UPDATE_RATE, -1);
     timer.start();
 }
 
-void render(uint32_t time_ms) {
+void Snake::render(uint32_t time) {
     // Clear the screen to dark green
     screen.alpha = 100;
     screen.pen = Pen(0, 20, 0, 255);
@@ -148,7 +108,7 @@ void render(uint32_t time_ms) {
     screen.text(std::to_string(score), minimal_font, Point(5, 5), false);
 }
 
-void update(uint32_t time) {
+void Snake::update(uint32_t time) {
     // Movement is easy. You can't go back on yourself.
     // These checks ensure you can't be moving left,
     // ie: directon.x == -1
