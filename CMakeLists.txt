@@ -9,6 +9,7 @@ set(PROJECT_SOURCE
         src/Stage.cpp
         src/StagePlaying.cpp
         src/StageTitle.cpp
+        src/StagePause.cpp
         )
 
 set(PROJECT_DISTRIBS LICENSE README.md)
