@@ -3,7 +3,12 @@ cmake_minimum_required(VERSION 3.9)
 
 project(snake)
 
-set(PROJECT_SOURCE src/main.cpp src/Snake.cpp)
+set(PROJECT_SOURCE
+        src/main.cpp
+        src/Snake.cpp
+        src/Stage.cpp
+        src/StagePlaying.cpp
+        )
 
 set(PROJECT_DISTRIBS LICENSE README.md)
 

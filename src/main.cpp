@@ -1,16 +1,18 @@
-#include "Snake.hpp"
+#include "Stage.hpp"
+#include "StagePlaying.hpp"
 
-Snake *snake = nullptr;
+
+Stage *stage = nullptr;
 
 void init() {
     set_screen_mode(blit::ScreenMode::lores);
-    snake = new Snake();
+    stage = new StagePlaying();
 }
 
 void update(uint32_t time) {
-    snake->update(time);
+    stage->update(time);
 }
 
 void render(uint32_t time) {
-    snake->render(time);
+    stage->render(time);
 }
