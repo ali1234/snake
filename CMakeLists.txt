@@ -8,6 +8,7 @@ set(PROJECT_SOURCE
         src/Snake.cpp
         src/Stage.cpp
         src/StagePlaying.cpp
+        src/StageTitle.cpp
         )
 
 set(PROJECT_DISTRIBS LICENSE README.md)

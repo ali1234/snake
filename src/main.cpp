@@ -1,12 +1,12 @@
 #include "Stage.hpp"
-#include "StagePlaying.hpp"
+#include "StageTitle.hpp"
 
 
 Stage *stage = nullptr;
 
 void init() {
     set_screen_mode(blit::ScreenMode::lores);
-    stage = new StagePlaying();
+    stage = new StageTitle();
 }
 
 void update(uint32_t time) {
