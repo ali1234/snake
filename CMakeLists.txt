@@ -1,9 +1,6 @@
 # Basic parameters; check that these match your project / environment
 cmake_minimum_required(VERSION 3.9)
 
-# Wrapper for the Pico SDK, which is only included if PICO_BOARD is set
-include(${32BLIT_DIR}/32blit-pico/sdk_import.cmake)
-
 project(snake)
 
 set(PROJECT_SOURCE snake.cpp snake.hpp)
@@ -17,6 +14,8 @@ else()
 endif()
 
 find_package (32BLIT CONFIG REQUIRED PATHS ../32blit-sdk)
+# Wrapper for the Pico SDK, which is only included if PICO_BOARD is set
+include(${32BLIT_DIR}/32blit-pico/sdk_import.cmake)
 
 blit_executable (${PROJECT_NAME} ${PROJECT_SOURCE})
 blit_metadata (${PROJECT_NAME} metadata.yml)
