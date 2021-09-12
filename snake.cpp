@@ -13,11 +13,9 @@ using namespace blit;
 const uint32_t UPDATE_RATE = 200;
 
 // Some handy constants for movement directions and "stopped" state
-const Vec2 MOVE_UP(0, -1);
-const Vec2 MOVE_DOWN(0, 1);
-const Vec2 MOVE_LEFT(-1, 0);
-const Vec2 MOVE_RIGHT(1, 0);
-const Vec2 STOP(0, 0);
+enum Direction {
+    Up, Down, Left, Right, Stop
+};
 
 // These points index into the spritesheet, using x/y values
 // makes it easy to identify a specific sprite.
@@ -30,7 +28,8 @@ const uint32_t NUM_SPRITES = 14; // First 14 sprites on the top row
 Rect game_bounds;
 
 // Current snake direction
-Vec2 direction(0, 0);
+Direction direction = Stop;
+Direction last_move = Stop;
 
 // The snake itself is a vector of Points
 std::vector<Point> snake;
@@ -53,7 +52,7 @@ void restart_game() {
     // Remove all snake 
     snake.clear();
     snake.emplace_back(game_bounds.center());
-    direction = STOP;
+    direction = Stop;
     score = 0;
     random_reset();
     apple = get_random_point(game_bounds.size());
@@ -64,11 +63,27 @@ void restart_game() {
 // this allows us to run the game at a speed (more or less) of our choosing.
 // TASK you could try making Snake harder over time by speeding it up!
 void move(Timer &t) {
-    // No movement means nothing to do here
-    // exit early so the snake doesn't continually collide with itself
-    if (direction == Vec2(0.0f, 0.0f)) return;
 
-    Point head = snake.back() + direction;
+    Point head = snake.back();
+    switch(direction) {
+        case Up:
+            head.y -= 1;
+            break;
+        case Down:
+            head.y += 1;
+            break;
+        case Left:
+            head.x -= 1;
+            break;
+        case Right:
+            head.x += 1;
+            break;
+        default:
+            // No movement means nothing to do here
+            // exit early so the snake doesn't continually collide with itself
+            return;
+    }
+
     for(auto segment : snake) {
         // If the head x/y coordinates match any body/segment
         // coordinates then we've collided with ourselves. BAD LUCK!
@@ -99,6 +114,7 @@ void move(Timer &t) {
         // which is A BAD THING, but for the sake of snake... it's fiiiinnnee!
         snake.erase(snake.begin());
     }
+    last_move = direction;
 }
 
 void init() {
@@ -150,20 +166,10 @@ void render(uint32_t time_ms) {
 
 void update(uint32_t time) {
     // Movement is easy. You can't go back on yourself.
-    // These checks ensure you can't be moving left,
-    // ie: directon.x == -1
-    // and change direction to go back over yourself,
-    // ie: direction.x == 1
-    if(direction.x == 0) {
-        // If we're not already moving along the X axis,
-        // allow a change in direction along X
-        if(buttons.pressed & DPAD_RIGHT) direction = MOVE_RIGHT;
-        if(buttons.pressed & DPAD_LEFT) direction = MOVE_LEFT;
-    }
-    if(direction.y == 0) {
-        // If we're not already moving along the Y axis,
-        // allow a change in direction along Y
-        if(buttons.pressed & DPAD_DOWN) direction = MOVE_DOWN;
-        if(buttons.pressed & DPAD_UP) direction = MOVE_UP;
-    }
+    // The last actual move made is remembered in last_move.
+    // You can go in any direction except the opposite of it.
+    if(buttons.pressed & DPAD_RIGHT && last_move != Left) direction = Right;
+    if(buttons.pressed & DPAD_LEFT && last_move != Right) direction = Left;
+    if(buttons.pressed & DPAD_DOWN && last_move != Up) direction = Down;
+    if(buttons.pressed & DPAD_UP && last_move != Down) direction = Up;
 }
