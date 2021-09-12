@@ -8,7 +8,7 @@
 void StagePlaying::update(uint32_t time) {
     if (!finished()) {
         if (blit::buttons.pressed & blit::Button::MENU)
-            finish(new StagePause(this));
+            change(std::make_shared<StagePause>(shared_from_this()));
         else
             snake.update(time);
     }

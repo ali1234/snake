@@ -6,7 +6,7 @@
 void StageTitle::update(uint32_t time) {
     if (!finished()) {
         if (blit::buttons.pressed & blit::Button::A)
-            finish(new StagePlaying());
+            finish(std::make_shared<StagePlaying>());
     }
 }
 
