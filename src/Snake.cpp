@@ -3,7 +3,7 @@
 #include <memory>
 #include <cstdlib>
 
-#include "snake.hpp"
+#include "Snake.hpp"
 #include "random.hpp"
 #include "assets.hpp"
 
