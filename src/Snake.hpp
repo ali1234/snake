@@ -49,5 +49,7 @@ class Snake {
         // The "update" hook is called far too quickly, so use a timer for movement
         blit::Timer timer;
 
+        bool game_over = false;
+
         friend class StagePlaying;
 };

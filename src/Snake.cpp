@@ -33,7 +33,8 @@ void Snake::move(Timer &t) {
         // If the head x/y coordinates match any body/segment
         // coordinates then we've collided with ourselves. BAD LUCK!
         if(head == segment){
-            restart_game();
+            game_over = true;
+            timer.stop();
             return;
         }
     }
@@ -51,7 +52,8 @@ void Snake::move(Timer &t) {
         //  If we go out of bounds BAD LUCK!
         // We can check this by seeing if our head is within the game bounds.
         if(!game_bounds.contains(head)) {
-            restart_game();
+            game_over = true;
+            timer.stop();
             return;
         }
         // If we haven't eaten an apple then the snake doesn't get any bigger
@@ -104,6 +106,7 @@ void Snake::render(uint32_t time) {
     screen.alpha = 100;
     screen.pen = Pen(255, 255, 255);
     screen.text(std::to_string(score), minimal_font, Point(5, 5), false);
+    screen.alpha = 255;
 }
 
 void Snake::update(uint32_t time) {
