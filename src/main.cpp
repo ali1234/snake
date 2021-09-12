@@ -11,6 +11,12 @@ void init() {
 
 void update(uint32_t time) {
     stage->update(time);
+    if (stage->finished()) {
+        Stage *tmp = stage->next();
+        delete stage;
+        stage = tmp;
+    }
+
 }
 
 void render(uint32_t time) {

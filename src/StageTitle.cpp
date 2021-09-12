@@ -1,9 +1,13 @@
 #include "32blit.hpp"
 
 #include "StageTitle.hpp"
+#include "StagePlaying.hpp"
 
 void StageTitle::update(uint32_t time) {
-
+    if (!finished()) {
+        if (blit::buttons.pressed & blit::Button::A)
+            finish(new StagePlaying());
+    }
 }
 
 void StageTitle::render(uint32_t time) {
