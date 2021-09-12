@@ -5,8 +5,8 @@
 
 class StagePlaying : public Stage {
     public:
-        void update(uint32_t time);
-        void render(uint32_t time);
+        void update(uint32_t time) override;
+        void render(uint32_t time) override;
     protected:
         Snake snake;
 };
