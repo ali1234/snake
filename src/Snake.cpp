@@ -62,8 +62,6 @@ void Snake::move(Timer &t) {
 }
 
 Snake::Snake() {
-    set_screen_mode(lores);
-    
     // The screen bounds divided by the sprite size (8 x 8) form
     // the game bounds- ie: the number of x / y locations that
     // our snake and apple's can occupy.

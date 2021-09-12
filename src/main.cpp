@@ -3,6 +3,7 @@
 Snake *snake = nullptr;
 
 void init() {
+    set_screen_mode(blit::ScreenMode::lores);
     snake = new Snake();
 }
 
