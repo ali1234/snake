@@ -8,9 +8,9 @@ void StageTitle::update(uint32_t time) {
     Timed::update(time);
     if (!finished()) {
         if (expired())
-            finish(std::make_shared<StageAttract>());
+            finish(std::make_shared<Fade>(shared_from_this(), std::make_shared<StageAttract>()));
         if (blit::buttons.pressed & blit::Button::A)
-            finish(std::make_shared<StagePlaying>());
+            finish(std::make_shared<Fade>(shared_from_this(), std::make_shared<StagePlaying>()));
     }
 }
 

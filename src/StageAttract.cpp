@@ -7,7 +7,7 @@ void StageAttract::update(uint32_t time) {
     Timed::update(time);
     if (!finished()) {
         if (expired() || blit::buttons.pressed & blit::Button::A)
-            finish(std::make_shared<StageTitle>());
+            finish(std::make_shared<Fade>(shared_from_this(), std::make_shared<StageTitle>()));
         snake.autoplay();
     }
 }
