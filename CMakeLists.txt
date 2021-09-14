@@ -2,7 +2,9 @@
 cmake_minimum_required(VERSION 3.9)
 
 # Wrapper for the Pico SDK, which is only included if PICO_BOARD is set
-include(${32BLIT_DIR}/32blit-pico/sdk_import.cmake)
+if (PICO_BOARD)
+    include(${32BLIT_DIR}/32blit-pico/sdk_import.cmake)
+endif()
 
 project(snake)
 
