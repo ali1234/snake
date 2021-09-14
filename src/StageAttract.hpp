@@ -8,4 +8,6 @@ class StageAttract : public Timed {
         StageAttract() : Timed(5000) {}
         void update(uint32_t time) override;
         void render(uint32_t time) override;
+    protected:
+        Snake snake;
 };

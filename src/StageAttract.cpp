@@ -12,8 +12,7 @@ void StageAttract::update(uint32_t time) {
 }
 
 void StageAttract::render(uint32_t time) {
-    blit::screen.pen = blit::Pen(255, 127, 0);
-    blit::screen.clear();
+    snake.render(time);
     blit::screen.pen = blit::Pen(255, 255, 255);
-    blit::screen.text("Attract\nMode", blit::minimal_font, {80, 60}, true, blit::TextAlign::center_center);
+    blit::screen.text("Attract Mode", blit::minimal_font, {80, 119}, true, blit::TextAlign::bottom_center);
 }
