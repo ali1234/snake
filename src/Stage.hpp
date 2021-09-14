@@ -40,3 +40,16 @@ class Timed : public Stage {
 
         uint32_t duration, elapsed = 0;
 };
+
+class Fade : public Timed {
+    public:
+        Fade(StagePtr a, StagePtr b, uint32_t duration=300)
+                : Timed(duration/2), a(a), b(b) {}
+
+        void update(uint32_t time) override;
+        void render(uint32_t time) override;
+
+    protected:
+        StagePtr a, b;
+        bool direction = false;
+};
