@@ -24,3 +24,19 @@ void Stage::change(StagePtr next) {
 bool Stage::changed() const {
     return _changed;
 }
+
+
+void Timed::update(uint32_t time) {
+    elapsed += time;
+}
+
+bool Timed::expired() const {
+    return elapsed > duration;
+}
+
+float Timed::progress() const {
+    float tmp = (float) elapsed / duration;
+    if (tmp < 0) return 0;
+    if (tmp > 1) return 1;
+    return tmp;
+}

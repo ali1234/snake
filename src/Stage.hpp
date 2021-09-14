@@ -27,3 +27,16 @@ class Stage : public std::enable_shared_from_this<Stage> {
         bool _changed = false;
         StagePtr _next = nullptr;
 };
+
+class Timed : public Stage {
+    public:
+        Timed(uint32_t duration) : Stage(), duration(duration) {};
+
+        void update(uint32_t time) override;
+
+    protected:
+        bool expired() const;
+        float progress() const;
+
+        uint32_t duration, elapsed = 0;
+};
