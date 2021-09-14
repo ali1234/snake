@@ -128,3 +128,14 @@ void Snake::update(uint32_t time) {
         if(buttons.pressed & DPAD_UP) direction = MOVE_UP;
     }
 }
+
+void Snake::autoplay() {
+    // apple, direction, snake.back()
+    Point head = snake.back();
+
+    if (head.x < apple.x) direction = MOVE_RIGHT;
+    else if (head.x > apple.x) direction = MOVE_LEFT;
+    else if (head.y < apple.y) direction = MOVE_DOWN;
+    else if (head.y > apple.y) direction = MOVE_UP;
+
+}

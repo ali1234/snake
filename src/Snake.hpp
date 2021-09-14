@@ -7,6 +7,8 @@ class Snake {
         Snake();
         void update(uint32_t time);
         void render(uint32_t time);
+
+        void autoplay();
     protected:
         void restart_game();
         void move(blit::Timer &t);

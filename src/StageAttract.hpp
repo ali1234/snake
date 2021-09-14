@@ -5,7 +5,7 @@
 
 class StageAttract : public Timed {
     public:
-        StageAttract() : Timed(5000) {}
+        StageAttract() : Timed(15000) {}
         void update(uint32_t time) override;
         void render(uint32_t time) override;
     protected:
